@@ -32,12 +32,14 @@ name = "my_script"
 
 def ActPirate(pirate):
 
+    deploy_x, deploy_y = pirate.getDeployPoint()
+
     # newly created pirates are set to Scout by default
     if pirate.getSignal() == "":
         pirate.setSignal("S")
     
     pirate_signal = pirate.getSignal()
-    team_signal = pirate.getTeamSignal()
+    team_signal = list(pirate.getTeamSignal())
 
     if pirate_signal == "S":
         current_location = pirate.investigate_current()[0]
@@ -66,7 +68,6 @@ def ActPirate(pirate):
                 arr[index] = value[0]
                 arr[index + 1] = value[1]
 
-            team_signal = list(team_signal)
             update(team_signal, island_number * 4 - 4, stringify(island_x))
             update(team_signal, island_number * 4 - 2, stringify(island_y))
             
@@ -75,8 +76,7 @@ def ActPirate(pirate):
             team_signal[island_number + 11] = str(island_number)
             
             # convert the list back to string and update the team signal
-            team_signal = "".join(team_signal)
-            pirate.setTeamSignal(team_signal)
+            pirate.setTeamSignal("".join(team_signal))
 
             # TODO: attacker should not just stay on one spot, but should move around the island
             return 0 # temporary measure
@@ -94,7 +94,10 @@ def ActPirate(pirate):
             for i in [1, 2, 3]:
                 if track[i - 1] == "myCaptured" and track[i + 2] == "oppCapturing":
                     pirate_signal = f"D{i}"
+                    team_signal[i + 14] = str(i)
+                    pirate.setTeamSignal("".join(team_signal))
                     break
+        
         if pirate_signal[0] == "D":
             pirate.setSignal(pirate_signal)
             # TODO: movement of defender: review whether is it required, how to move, etc.
@@ -104,21 +107,63 @@ def ActPirate(pirate):
         # if there is, he has the chance to become Attacker
         # 12, 13 and 14 are the indices of attack commands for islands 1, 2 and 3 respectively in the team signal
         # TODO: IMPLEMENT PERCENTAGE-WISE chances of becoming attacker vs. passive scout
-        if team_signal[12] != " ":
-            pirate_signal = "A1"
-        elif team_signal[13] != " ":
-            pirate_signal = "A2"
-        elif team_signal[14] != " ":
-            pirate_signal = "A3"
+        to_attack_1 = team_signal[12] != " "
+        to_attack_2 = team_signal[13] != " "
+        to_attack_3 = team_signal[14] != " "
+
+        if to_attack_1 and to_attack_2 and to_attack_3:
+            pirate_signal = f"A{randint(1, 3)}"
+        elif to_attack_1 and to_attack_2:
+            discriminator = randint(1, 100)
+            if discriminator <= 45:
+                pirate_signal = "A1"
+            elif discriminator <= 90:
+                pirate_signal = "A2"
+            else:
+                pirate_signal = "P"
+        elif to_attack_1 and to_attack_3:
+            discriminator = randint(1, 100)
+            if discriminator <= 45:
+                pirate_signal = "A1"
+            elif discriminator <= 90:
+                pirate_signal = "A3"
+            else:
+                pirate_signal = "P"
+        elif to_attack_2 and to_attack_3:
+            discriminator = randint(1, 100)
+            if discriminator <= 45:
+                pirate_signal = "A2"
+            elif discriminator <= 90:
+                pirate_signal = "A3"
+            else:
+                pirate_signal = "P"
+        elif to_attack_1:
+            discriminator = randint(1, 2)
+            if discriminator == 1:
+                pirate_signal = "A1"
+            else:
+                pirate_signal = "P"
+        elif to_attack_2:
+            discriminator = randint(1, 2)
+            if discriminator == 1:
+                pirate_signal = "A2"
+            else:
+                pirate_signal = "P"
+        elif to_attack_3:
+            discriminator = randint(1, 2)
+            if discriminator == 1:
+                pirate_signal = "A3"
+            else:
+                pirate_signal = "P"
         
-        if pirate_signal[0] == "A":
+        if pirate_signal == "P" or pirate_signal[0] == "A":
             pirate.setSignal(pirate_signal)
-            # TODO: movement of attacker: review whether is it required, how to move, etc.
-            return 0 # temporary measure
+            if pirate_signal[0] == "A":
+                # TODO: movement of attacker: review whether is it required, how to move, etc.
+                return 0 # temporary measure
         
         # if none of the above conditions are met, the scout explores
         # TODO: review whether to change the origin from which moveAway happens
-        deploy_x, deploy_y = pirate.getDeployPoint()
         return moveAway(deploy_x, deploy_y, pirate)
     
     elif pirate_signal[0] == "A":

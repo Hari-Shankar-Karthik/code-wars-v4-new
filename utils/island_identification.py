@@ -1,3 +1,5 @@
+island_cord =["","","",""]
+
 def updateIslandCord(pirate):
     up = pirate.investigate_up()[0]
     ne = pirate.investigate_ne()[0]
@@ -72,3 +74,5 @@ def updateIslandCord(pirate):
         s = sw[-1] + str(x - 2) + "," + str(y + 2)
         if(island_cord[int(s[0])] == ""):
             island_cord[int(s[0])] = s[1:]
+
+    return island_cord

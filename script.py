@@ -1,4 +1,4 @@
-import random
+from random import randint
 import math
 
 name = "script"
@@ -65,7 +65,7 @@ def checkIsland(pirate):
 
 def ActPirate(pirate):
     # complete this function
-    pass
+    return randint(1, 4)
 
 
 def ActTeam(team):

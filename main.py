@@ -1,7 +1,6 @@
 from engine.main import Game
-import scriptblue
-import scriptred
+import scriptred, scriptblue, hari_script
 
 if __name__ == "__main__":
-    G = Game((40, 40), scriptred, scriptblue)
+    G = Game((40, 40), hari_script, hari_script)
     G.run_game()

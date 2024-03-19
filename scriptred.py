@@ -125,6 +125,13 @@ def ActPirate(pirate):
         s = right[-1] + str(x + 1) + "," + str(y)
         pirate.setTeamSignal(s)
 
+    state = pirate.trackPlayers()
+    for index in range(3,len(state)):
+        if state[index] == "oppCapturing" and island_cord[index-2] != "" and randint(1,10) == 1:
+            x = island_cord[index-2].split(",")[0]
+            y = island_cord[index-2].split(",")[1]
+            pirate.moveTo(x,y,pirate)
+
     
     if pirate.getTeamSignal() != "":
         s = pirate.getTeamSignal()

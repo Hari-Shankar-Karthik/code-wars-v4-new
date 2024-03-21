@@ -1,3 +1,5 @@
+from utils.decipher import decipher
+
 def NoOfPiratesAssembled(x ,y, team):             # Counts the numbers of pirates at a point
 
     x = int(x)

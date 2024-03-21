@@ -1,3 +1,5 @@
+from utils.cipher import cipher
+
 def updateIslandCord(pirate):
     up = pirate.investigate_up()[0]
     ne = pirate.investigate_ne()[0]

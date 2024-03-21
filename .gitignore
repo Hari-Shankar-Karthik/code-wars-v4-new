@@ -1,6 +1,7 @@
-# All directories except utils
+# All directories except utils and notes
 */
 !utils/
+!notes/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -6,27 +6,20 @@ from utils.island_identification import updateIslandCord
 from utils.pirate_movements import moveTo
 from utils.reduce_frames import reduceFrames
 from utils.calculate_frames import calculateFrames
+from utils.team_initialization_and_update import intitializeTeam
+from utils.pirate_initialization import intitializePirate
+from utils.reset_pirate_signal import resetPirateSignal
 
 name = "Hack_of_clans"
 
-def ActPirate(pirate):
-    pirate_signal  = pirate.getSignal()
-    if pirate_signal == "":                         # Initialization
-        pirate_signal = cipher(int(pirate.getID())) + " "*99
-        pirate.setSignal(pirate_signal)
-
+def gradualDefensePirate(pirate):
+    
     updateIslandCord(pirate)        # updates island coordiantes in team signal
-
     x, y = pirate.getPosition()
     team_signal = pirate.getTeamSignal()
     status = pirate.trackPlayers()
     no_of_pirates = decipher(team_signal[9])
-
-    if pirate_signal[3] == pirate_signal[1]:            # Reset target location if target reached
-        pirate_signal[3] = " "
-    if pirate_signal[4] == pirate_signal[2]:
-        pirate_signal[4] = " "
-    pirate.setSignal(pirate_signal)
+    resetPirateSignal(pirate)
 
     for island_no in range(1,4):        #First loop to put a serpoint some tiles away and add it to team signal
         if status[island_no + 2] == "oppCapturing" and status[island_no - 1] == "myCaptured" and team_signal[5 + island_no] != " " and decipher(team_signal[5 + island_no]) != 0:
@@ -38,8 +31,6 @@ def ActPirate(pirate):
                     pirate_signal = pirate_signal[:3] + cipher(max(island_x-6,1)) + cipher(island_y) + pirate_signal[5:]
                     pirate_signal = pirate_signal[0] + cipher(x) + cipher(y) + pirate_signal[3:]
                     pirate.setSignal(pirate_signal)
-                    # print(pirate.getID()+": ",end="")             # Testing pirate signals
-                    # print(decipher(pirate_signal))
                     return moveTo(decipher(pirate_signal[3]), decipher(pirate_signal[4]), pirate)
 
     for island_no in range(1,4):        #Once checkpoint reached push all pirates to interior of island
@@ -52,9 +43,21 @@ def ActPirate(pirate):
                     pirate_signal = pirate_signal[:3] + cipher(island_x) + cipher(island_y) + pirate_signal[5:]
                     pirate_signal = pirate_signal[0] + cipher(x) + cipher(y) + pirate_signal[3:]
                     pirate.setSignal(pirate_signal)
-                    # print(pirate.getID()+": ",end="")
-                    # print(decipher(pirate_signal))
                     return moveTo(decipher(pirate_signal[3]), decipher(pirate_signal[4]), pirate)
+
+    return None
+
+def ActPirate(pirate):
+
+    intitializePirate(pirate)
+    move = gradualDefensePirate(pirate)
+    if move is not None:
+        return move
+
+    team_signal = pirate.getTeamSignal()
+    status = pirate.trackPlayers()
+    pirate_signal = pirate.getSignal()
+    x, y = pirate.getPosition()
 
     for island_no in range(1,4):                    # random attack strategy to be replaced with final. Used for testing gradual defense
         island_x = team_signal[2*island_no-2]
@@ -64,29 +67,15 @@ def ActPirate(pirate):
             if rand <= 1:
                 pirate_signal = pirate_signal[0] + cipher(x) + cipher(y) + pirate_signal[3:]
                 pirate.setSignal(pirate_signal)
-                # print(pirate.getID()+": ",end="")
-                # print(decipher(pirate_signal))
                 return moveTo(decipher(island_x), decipher(island_y), pirate)
-
+    
     pirate_signal = pirate_signal[0] + cipher(x) + cipher(y) + pirate_signal[3:]
     pirate.setSignal(pirate_signal)
-    # print(pirate.getID()+": ",end="")
-    # print(decipher(pirate_signal))
     return randint(1,4)
-        
-def ActTeam(team):
-    deploy_x, deploy_y = team.getDeployPoint()
 
+def gradualDefenseTeam(team):
     team_signal = team.getTeamSignal()
     no_of_pirates = int(team.getTotalPirates())
-
-    if team_signal == "":               # Intitialization
-        team_signal = " "*9 + cipher(no_of_pirates) + " "*90
-        team.setTeamSignal(team_signal)
-    
-    team_signal = team_signal[:9] + cipher(no_of_pirates) + team_signal[10:]        #Updating no of pirates
-    team.setTeamSignal(team_signal)
-
     for island_no in range(1,4):                # Updating closest 10 using closestN (wrt to assembly point)
         if team_signal[2*island_no - 2] != " " and team_signal[2*island_no - 1] != " ":
             island_x = decipher(team_signal[2*island_no - 2])
@@ -98,7 +87,6 @@ def ActTeam(team):
                 l.append(" ")
             team_signal = team_signal[0:10*island_no] + cipher(l) + team_signal[10*(island_no + 1):]
             team.setTeamSignal(team_signal)
-    # Closest10(team)
 
     team_signal = team.getTeamSignal()
     status = team.trackPlayers()
@@ -114,14 +102,17 @@ def ActTeam(team):
             pirates_defending = max(min(10,no_of_pirates//10),min(no_of_pirates,3))
             calculateFrames(team, pirates_defending, island_no)
 
-    # debug = decipher(team_signal)
-
     team_signal = team.getTeamSignal()
 
     for island_no in range(1,4):        # Reset signal if island is defended successfully 
         if status[2 + island_no] != "oppCapturing":
             team_signal = team_signal[:5 + island_no] + " " + team_signal[6 + island_no:]
-            team.setTeamSignal(team_signal)   
+            team.setTeamSignal(team_signal) 
+        
+def ActTeam(team):
+  
+    intitializeTeam(team)
+    gradualDefenseTeam(team)
 
     # team_signal = team.getTeamSignal()
     # print(decipher(team_signal))

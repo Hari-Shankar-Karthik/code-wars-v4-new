@@ -194,7 +194,7 @@ def ActPirate(pirate):
     no_of_pirates = decipher(team_signal[9])
     for island_no in range(1,4):        #First loop to put a serpoint some tiles away and add it to team signal
         if status[island_no + 2] == "oppCapturing" and status[island_no - 1] == "myCaptured" and team_signal[5 + island_no] != " " and decipher(team_signal[5 + island_no]) != 0:
-            for index in range(0,min(10,no_of_pirates//10)):
+            for index in range(0,max(min(10,no_of_pirates//10)),min(no_of_pirates,3)):
                 if(team_signal[island_no*10+index] == cipher(int(pirate.getID()))):
                     island_x = ord(team_signal[2*island_no-2]) - 63
                     island_y = ord(team_signal[2*island_no-1]) - 63
@@ -208,7 +208,7 @@ def ActPirate(pirate):
 
     for island_no in range(1,4):        #Once checkpoint reached push all pirates to interior of island
         if status[island_no+2] == "oppCapturing" and status[island_no - 1] == "myCaptured" and decipher(team_signal[5 + island_no]) == 0:
-            for index in range(0,min(10,no_of_pirates//10)):
+            for index in range(0,max(min(10,no_of_pirates//10)),min(no_of_pirates,3)):
                 if(team_signal[island_no*10+index] == cipher(int(pirate.getID()))):
                     island_x = decipher(team_signal[2*island_no-2])
                     island_y = decipher(team_signal[2*island_no-1])
@@ -298,7 +298,7 @@ def ActTeam(team):
         if team_signal[2*island_no - 2] != " " and status[2 + island_no] == "oppCapturing" and status[island_no - 1] == "myCaptured" and team_signal[5 + island_no] == " ":
             island_x = decipher(team_signal[2*island_no - 2])
             island_y = decipher(team_signal[2*island_no - 1])
-            pirates_defending = min(10,no_of_pirates//10)
+            pirates_defending = max(min(10,no_of_pirates//10),min(no_of_pirates,3))
             pirate_signals = team.getListOfSignals()
             for pirate_signal in pirate_signals:
                 if pirate_signal[0] == team_signal[10*island_no + pirates_defending - 1]:
